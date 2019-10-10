@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Group Chat on Node.js</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font: 15px Helvetica, Monospace, Arial; }
+        form { background: #fff; padding: 3px; position: fixed; height: 7%; bottom: 0; width: 100%; border-color: #000; border-top-style: solid; border-top-width: 1px;}
+        form input { font: 15px Helvetica, Monospace, Arial; border-style: solid; border-width: 1px; padding: 10px; height: 100%; width: 85%; margin-right: .5%; }
+        form button { font: 15px Helvetica, Monospace, Arial; width: 9%; background: rgb(130, 224, 255); border: none; height: 100%; padding: 10px; margin-left: 2%; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+    </style>
+    <script src="http://katmer.duckdns.org:3000/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  </head>
+  <body>
+      <div style="overflow: auto;"><ul id="messages"></ul></div>
+    <form action="/" method="POST" id="chatForm">
+      <input id="txt" autocomplete="off" autofocus="on" oninput="isTyping()" placeholder="type your message here..." /><button>Send</button>
+    </form>
+    <script>
+            var socket = io.connect('http://katmer.duckdns.org:3000');
+
+            // submit text message without reload/refresh the page
+            $('form').submit(function(e){
+                e.preventDefault(); // prevents page reloading
+                socket.emit('chat_message', $('#txt').val());
+                $('#txt').val('');
+                return false;
+            });
+
+            // append the chat text message
+            socket.on('chat_message', function(msg){
+                $('#messages').append($('<li>').html(msg));
+            });
+
+            // append text if someone is online
+            socket.on('is_online', function(username) {
+                $('#messages').append($('<li>').html(username));
+            });
+
+            // ask username
+            var username = prompt('Please tell me your name');
+            socket.emit('username', username);
+
+    </script>
+  </body>
+</html>
